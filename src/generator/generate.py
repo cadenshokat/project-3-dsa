@@ -10,12 +10,6 @@ def generate_random_large_range(
     max_val: int = 1000,
     filename: str = "random.txt",
 ) -> Path:
-    """
-    Generate a dataset of n random integers in [min_val, max_val]
-    and save it under src/datasets/<filename>.
-
-    Returns the Path to the generated file.
-    """
     DATASETS_DIR.mkdir(parents=True, exist_ok=True)
 
     path = DATASETS_DIR / filename
@@ -33,13 +27,6 @@ def sort_dataset_file(
     input_filename: str = "random.txt",
     output_filename: str = "sorted.txt",
 ) -> Path:
-    """
-    Read the dataset from src/datasets/<input_filename>,
-    sort the numbers, and write them to src/datasets/<output_filename>,
-    one number per line.
-
-    Returns the Path to the sorted output file.
-    """
     DATASETS_DIR.mkdir(parents=True, exist_ok=True)
 
     input_path = DATASETS_DIR / input_filename
@@ -56,6 +43,58 @@ def sort_dataset_file(
 
     return output_path
 
+def generate_reverse_sorted_dataset(
+    input_filename: str = "random.txt",
+    output_filename: str = "reversed.txt",
+) -> Path:
+    DATASETS_DIR.mkdir(parents=True, exist_ok=True)
+
+    input_path = DATASETS_DIR / input_filename
+    output_path = DATASETS_DIR / output_filename
+
+    with input_path.open("r") as f:
+        nums = [int(line.strip()) for line in f if line.strip()]
+
+    nums.sort(reverse=True)
+
+    with output_path.open("w") as f:
+        for value in nums:
+            f.write(f"{value}\n")
+
+    return output_path
+
+
+def generate_almost_sorted_dataset(
+    input_filename: str = "random.txt",
+    output_filename: str = "almost_sorted.txt",
+    noise_fraction: float = 0.10,
+) -> Path:
+    DATASETS_DIR.mkdir(parents=True, exist_ok=True)
+
+    input_path = DATASETS_DIR / input_filename
+    output_path = DATASETS_DIR / output_filename
+
+    with input_path.open("r") as f:
+        nums = [int(line.strip()) for line in f if line.strip()]
+
+    nums.sort()
+
+    n = len(nums)
+    swaps = int(n * noise_fraction)
+
+    rng = random.Random(123)
+
+    for _ in range(swaps):
+        i = rng.randrange(n)
+        j = rng.randrange(n)
+        nums[i], nums[j] = nums[j], nums[i]
+
+    with output_path.open("w") as f:
+        for value in nums:
+            f.write(f"{value}\n")
+
+    return output_path
+
 
 if __name__ == "__main__":
     random_path = generate_random_large_range()
@@ -63,3 +102,9 @@ if __name__ == "__main__":
 
     sorted_path = sort_dataset_file()
     print(f"Sorted dataset written to: {sorted_path}")
+
+    reversed_path = generate_reverse_sorted_dataset()
+    print(f"Reversed dataset written to: {reversed_path}")
+
+    almost_sorted_path = generate_almost_sorted_dataset()
+    print(f"Almost-sorted dataset written to: {almost_sorted_path}")
