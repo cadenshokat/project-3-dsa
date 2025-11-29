@@ -128,12 +128,12 @@ def main():
 
     print("\n=== Results ===")
     print(f"Algorithm: {algo_info['name']}")
-    print(f"Dataset:   {dataset_info['name']}")
-    print(f"n:         {len(numbers)}")
-    print(f"Time:      {time_ms:.3f} ms")
+    print(f"Dataset: {dataset_info['name']}")
+    print(f"n: {len(numbers)}")
+    print(f"Time: {time_ms:.3f} ms")
     print(f"Sorted OK: {is_sorted}")
     print(f"First 10 elements: {sorted_numbers[:10]}")
-    print(f"Last 10 elements:  {sorted_numbers[-10:]}")
+    print(f"Last 10 elements: {sorted_numbers[-10:]}")
 
 
 if __name__ == "__main__":
