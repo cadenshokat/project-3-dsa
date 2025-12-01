@@ -1,5 +1,6 @@
 # Ignore datasets since they are randomly generated at run time
 src/datasets/
+src/datasets
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
