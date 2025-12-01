@@ -3,7 +3,7 @@
 
 ## Dependencies
 - Python 3.12.0 or later
-- pygame - for the visualization UI
+- pygame - for the visualization UI - run `pip install pygame`
 
 ## Running the project
 - Download the latest [release](https://github.com/cadenshokat/project-3-dsa/releases)
