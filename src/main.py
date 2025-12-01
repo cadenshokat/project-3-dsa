@@ -1,4 +1,6 @@
 import time
+import os
+import sys
 from pathlib import Path
 from algorithms.merge_sort import merge_sort
 from algorithms.quick_sort import quick_sort
@@ -79,16 +81,26 @@ def time_algorithm(algorithm_fn, data: list[int]) -> tuple[list[int], float]:
     time_ms = (end - start) * 1000.0
     return result, time_ms
 
-def choose_algorithm() -> str:
-    print("\nAvailable Algorithms:")
+def print_options():
+    print("\n")
     for key, info in ALGORITHMS.items():
         print(f"  {key}. {info['name']} ({info['complexity']})")
+    print("  4. Open UI (requires pygame - 'pip install pygame')")
+    print("  5. Quit\n")
 
+def choose_algorithm() -> str:
+    print_options()
     while True:
-        choice = input("Select an algorithm by number: ").strip()
-        if choice in ALGORITHMS:
+        choice = input("Select an option or algorithm by number: ").strip()
+        if choice == "4":
+            os.system('python visuals.py')
+            print_options()
+        elif choice == "5":
+            sys.exit(0)
+        elif choice in ALGORITHMS:
             return choice
-        print("Invalid choice, please try again.")
+        else: 
+            print("Invalid choice, please try again.")
 
 
 def choose_dataset() -> str:
