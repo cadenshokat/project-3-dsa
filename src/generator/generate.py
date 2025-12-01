@@ -9,12 +9,13 @@ def generate_random_large_range(
     min_val: int = 1,
     max_val: int = 1000,
     filename: str = "random.txt",
+    seed: int | None = None,
 ) -> Path:
     DATASETS_DIR.mkdir(parents=True, exist_ok=True)
 
     path = DATASETS_DIR / filename
 
-    rng = random.Random(42)
+    rng = random.Random(seed) if seed is not None else random
 
     with path.open("w") as f:
         for _ in range(n):
@@ -68,6 +69,7 @@ def generate_almost_sorted_dataset(
     input_filename: str = "random.txt",
     output_filename: str = "almost_sorted.txt",
     noise_fraction: float = 0.10,
+    seed: int | None = None
 ) -> Path:
     DATASETS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -82,7 +84,7 @@ def generate_almost_sorted_dataset(
     n = len(nums)
     swaps = int(n * noise_fraction)
 
-    rng = random.Random(123)
+    rng = random.Random(seed) if seed is not None else random
 
     for _ in range(swaps):
         i = rng.randrange(n)
