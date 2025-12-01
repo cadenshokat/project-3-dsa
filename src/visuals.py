@@ -17,6 +17,7 @@ CARD_HIGHLIGHT = (70, 80, 110)
 BAR_COLOR = (120, 200, 255)
 BAR_OUTLINE = (200, 220, 255)
 TEXT_COLOR = (235, 235, 245)
+SUCCESS_COLOR = (80, 220, 120)
 MUTED_TEXT = (170, 170, 185)
 ACCENT_COLOR = (255, 170, 90)
 BUTTON_COLOR = (70, 80, 110)
@@ -63,9 +64,9 @@ def draw_text(surface, text, x, y, font, color=TEXT_COLOR, center=False):
     surface.blit(img, rect)
 
 
-def regenerate_all_datasets():
-    print("Regenerating datasets...")
-    random_path = generate_random_large_range(seed=None)
+def regenerate_all_datasets(max_val: int):
+    print(f"Regenerating datasets (random max = {max_val})...")
+    random_path = generate_random_large_range(seed=None, max_val=max_val)
     print(f"  Random: {random_path}")
 
     sorted_path = sort_dataset_file()
@@ -154,7 +155,7 @@ def draw_dataset_panel(screen, dataset_results: Dict[str, float], medium_font, s
             draw_text(
                 screen,
                 time_str,
-                rect.right - 10,
+                rect.right - 180,
                 rect.bottom - 25,
                 small_font,
                 color=ACCENT_COLOR,
@@ -164,7 +165,7 @@ def draw_dataset_panel(screen, dataset_results: Dict[str, float], medium_font, s
             draw_text(
                 screen,
                 "Not run yet",
-                rect.right - 10,
+                rect.right - 180,
                 rect.bottom - 25,
                 small_font,
                 color=(130, 130, 140),
@@ -181,6 +182,7 @@ def draw_bar_chart(
     chart_rect: pygame.Rect,
     large_font,
     small_font,
+    datasets_regenerated: bool,
 ):
     pygame.draw.rect(screen, PANEL_COLOR, chart_rect, border_radius=10)
 
@@ -191,15 +193,26 @@ def draw_bar_chart(
     y1 = chart_rect.bottom - inner_margin
 
     if selected_algo_key is None:
-        draw_text(
-            screen,
-            "Pick an algorithm above to run benchmarks.",
-            chart_rect.centerx,
-            chart_rect.y + 20,
-            small_font,
-            color=MUTED_TEXT,
-            center=True,
-        )
+        if datasets_regenerated:
+            draw_text(
+                screen,
+                "Datasets regenerated!",
+                chart_rect.centerx,
+                (y0 + y1) / 2,
+                small_font,
+                color=SUCCESS_COLOR,
+                center=True,
+            )
+        else:
+            draw_text(
+                screen,
+                "Pick an algorithm above to run benchmarks.",
+                chart_rect.centerx,
+                chart_rect.y + 20,
+                small_font,
+                color=MUTED_TEXT,
+                center=True,
+            )
         return
     else:
         algo_name = ALGORITHMS[selected_algo_key]["name"]
@@ -213,15 +226,26 @@ def draw_bar_chart(
         )
 
     if not dataset_results:
-        draw_text(
-            screen,
-            "Press an algorithm button to run.",
-            chart_rect.centerx,
-            (y0 + y1) / 2,
-            small_font,
-            color=MUTED_TEXT,
-            center=True,
-        )
+        if datasets_regenerated:
+            draw_text(
+                screen,
+                "Datasets regenerated!",
+                chart_rect.centerx,
+                (y0 + y1) / 2,
+                small_font,
+                color=SUCCESS_COLOR,
+                center=True,
+            )
+        else:
+            draw_text(
+                screen,
+                "Press an algorithm button to run.",
+                chart_rect.centerx,
+                (y0 + y1) / 2,
+                small_font,
+                color=MUTED_TEXT,
+                center=True,
+            )
         return
 
     pygame.draw.line(screen, AXIS_COLOR, (x0, y0), (x0, y1), 2)
@@ -251,7 +275,7 @@ def draw_bar_chart(
         bar_h = height_ratio * chart_height
 
         cx = x0 + gap + i * (bar_width + gap)
-        x = cx
+        x = cx - bar_width / 2
         y = y1 - bar_h
 
         rect = pygame.Rect(x, y, bar_width, bar_h)
@@ -276,7 +300,10 @@ def main():
 
     clock = pygame.time.Clock()
 
-    regenerate_all_datasets()
+    max_random_value = 1000
+    datasets_regenerated = False
+
+    regenerate_all_datasets(max_random_value)
 
     selected_algo_key = None
     dataset_results: Dict[str, float] = {}
@@ -305,13 +332,33 @@ def main():
     regen_rect = pygame.Rect(30, HEIGHT - 60, 220, 40)
     regen_button = Button(regen_rect, "Regenerate Datasets", small_font)
 
+    max_value_box_rect = pygame.Rect(regen_rect.right + 230, regen_rect.y, 80, regen_rect.height)
+    max_dec_rect = pygame.Rect(max_value_box_rect.x - 40, regen_rect.y, 30, regen_rect.height)
+    max_inc_rect = pygame.Rect(max_value_box_rect.right + 10, regen_rect.y, 30, regen_rect.height)
+
     def regen_callback():
-        nonlocal dataset_results, selected_algo_key
-        regenerate_all_datasets()
+        nonlocal dataset_results, selected_algo_key, datasets_regenerated
+        regenerate_all_datasets(max_random_value)
         dataset_results = {}
         selected_algo_key = None
+        datasets_regenerated = True
 
     regen_button.callback = regen_callback
+
+    def dec_max_callback():
+        nonlocal max_random_value
+        if max_random_value > 10:
+            max_random_value = max(10, max_random_value - 1000)
+            print(f"Random max decreased to {max_random_value}")
+
+    def inc_max_callback():
+        nonlocal max_random_value
+        if max_random_value < 1_000_000:
+            max_random_value = min(1_000_000, max_random_value + 1000)
+            print(f"Random max increased to {max_random_value}")
+
+    max_dec_button = Button(max_dec_rect, "-", small_font, callback=dec_max_callback)
+    max_inc_button = Button(max_inc_rect, "+", small_font, callback=inc_max_callback)
 
     running = True
     while running:
@@ -328,18 +375,38 @@ def main():
             for button in algo_buttons.values():
                 button.handle_event(event, mouse_pos)
             regen_button.handle_event(event, mouse_pos)
+            max_dec_button.handle_event(event, mouse_pos)
+            max_inc_button.handle_event(event, mouse_pos)
 
         screen.fill(BG_COLOR)
 
         draw_top_bar(screen, algo_buttons, selected_algo_key, mouse_pos, title_font, small_font)
 
         chart_rect = pygame.Rect(30, 110, WIDTH - 380, HEIGHT - 180)
-        draw_bar_chart(screen, selected_algo_key, dataset_results, chart_rect, medium_font, small_font)
+        draw_bar_chart(screen, selected_algo_key, dataset_results, chart_rect, medium_font, small_font, datasets_regenerated)
 
         draw_dataset_panel(screen, dataset_results, medium_font, small_font)
 
         regen_button.draw(screen, mouse_pos)
-        draw_text(screen, "ESC to quit", regen_rect.right + 20, regen_rect.y + 12, small_font, color=MUTED_TEXT)
+        label_x = regen_rect.right + 40
+        label_y = regen_rect.y + 10
+        draw_text(screen, "Dataset Max Value:", label_x, label_y, small_font, color=MUTED_TEXT)
+
+        pygame.draw.rect(screen, CARD_COLOR, max_value_box_rect, border_radius=8)
+        value_str = str(max_random_value)
+        value_surf = small_font.render(value_str, True, TEXT_COLOR)
+        value_rect = value_surf.get_rect(center=max_value_box_rect.center)
+        screen.blit(value_surf, value_rect)
+
+        max_dec_button.draw(screen, mouse_pos)
+        max_inc_button.draw(screen, mouse_pos)
+
+        esc_text = "ESC to quit"
+        esc_surf = small_font.render(esc_text, True, MUTED_TEXT)
+        esc_rect = esc_surf.get_rect()
+        esc_rect.bottom = regen_rect.bottom
+        esc_rect.right = WIDTH - 40
+        screen.blit(esc_surf, esc_rect)
 
         pygame.display.flip()
         clock.tick(60)
