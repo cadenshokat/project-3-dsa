@@ -64,7 +64,7 @@ DATASETS: dict[str, dict] = {
     "4": {
         "name": "Almost Sorted",
         "filename": "almost_sorted.txt",
-        "description": "Sorted with a small percentage of random swaps",
+        "description": "Sorted with 10% random swaps",
     },
 }
 
