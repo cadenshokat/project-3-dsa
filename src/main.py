@@ -5,6 +5,12 @@ from pathlib import Path
 from algorithms.merge_sort import merge_sort
 from algorithms.quick_sort import quick_sort
 from algorithms.tournament_sort import tourney_sort
+from generator.generate import (
+    generate_random_large_range,
+    sort_dataset_file,
+    generate_reverse_sorted_dataset,
+    generate_almost_sorted_dataset,
+)
 
 def load_dataset(filename: str) -> list[int]:
     base_dir = Path(__file__).resolve().parent
@@ -25,6 +31,22 @@ def load_dataset(filename: str) -> list[int]:
             numbers.append(int(t))
 
     return numbers
+
+def regenerate_all_datasets(max_val: int = 1000) -> None:
+    print(f"\nGenerating datasets (random max = {max_val})...")
+    random_path = generate_random_large_range(max_val=max_val)
+    print(f"  Random: {random_path}")
+
+    sorted_path = sort_dataset_file()
+    print(f"  Sorted: {sorted_path}")
+
+    reversed_path = generate_reverse_sorted_dataset()
+    print(f"  Reverse sorted: {reversed_path}")
+
+    almost_sorted_path = generate_almost_sorted_dataset()
+    print(f"  Almost sorted: {almost_sorted_path}")
+    print("Dataset generation complete.")
+
 
 
 ALGORITHMS: dict[str, dict] = {
@@ -82,7 +104,7 @@ def time_algorithm(algorithm_fn, data: list[int]) -> tuple[list[int], float]:
     return result, time_ms
 
 def print_options():
-    print("\n")
+    print("")
     for key, info in ALGORITHMS.items():
         print(f"  {key}. {info['name']} ({info['complexity']})")
     print("  4. Open UI (requires pygame - 'pip install pygame')")
@@ -117,36 +139,40 @@ def choose_dataset() -> str:
 
 def main():
     print("=== Sorting Algorithm Comparison Tool ===")
+    regenerate_all_datasets(max_val=1000)
 
-    algo_choice = choose_algorithm()
-    dataset_choice = choose_dataset()
+    while True:
+        algo_choice = choose_algorithm()
+        dataset_choice = choose_dataset()
 
-    algo_info = ALGORITHMS[algo_choice]
-    dataset_info = DATASETS[dataset_choice]
+        algo_info = ALGORITHMS[algo_choice]
+        dataset_info = DATASETS[dataset_choice]
 
-    print(f"\nYou selected algorithm: {algo_info['name']}")
-    print(f"Complexity: {algo_info['complexity']}")
-    print(f"Dataset: {dataset_info['name']} ({dataset_info['filename']})")
+        print(f"\nYou selected algorithm: {algo_info['name']}")
+        print(f"Complexity: {algo_info['complexity']}")
+        print(f"Dataset: {dataset_info['name']} ({dataset_info['filename']})")
 
-    print("\nLoading dataset...")
-    numbers = load_dataset(dataset_info["filename"])
-    print(f"Loaded {len(numbers)} numbers.")
+        print("\nLoading dataset...")
+        numbers = load_dataset(dataset_info["filename"])
+        print(f"Loaded {len(numbers)} numbers.")
 
-    print("\nRunning algorithm, please wait...")
-    sorted_numbers, time_ms = time_algorithm(algo_info["fn"], numbers)
+        print("\nRunning algorithm, please wait...")
+        sorted_numbers, time_ms = time_algorithm(algo_info["fn"], numbers)
 
-    is_sorted = all(sorted_numbers[i] <= sorted_numbers[i + 1]
-                    for i in range(len(sorted_numbers) - 1))
+        is_sorted = all(
+            sorted_numbers[i] <= sorted_numbers[i + 1]
+            for i in range(len(sorted_numbers) - 1)
+        )
 
-    print("\n=== Results ===")
-    print(f"Algorithm: {algo_info['name']}")
-    print(f"Dataset: {dataset_info['name']}")
-    print(f"n: {len(numbers)}")
-    print(f"Time: {time_ms:.3f} ms")
-    print(f"Sorted OK: {is_sorted}")
-    print(f"First 10 elements: {sorted_numbers[:10]}")
-    print(f"Last 10 elements: {sorted_numbers[-10:]}")
-
+        print("\n=== Results ===")
+        print(f"Algorithm: {algo_info['name']}")
+        print(f"Dataset: {dataset_info['name']}")
+        print(f"n: {len(numbers)}")
+        print(f"Time: {time_ms:.3f} ms")
+        print(f"Sorted OK: {is_sorted}")
+        print(f"First 10 elements: {sorted_numbers[:10]}")
+        print(f"Last 10 elements: {sorted_numbers[-10:]}")
+        print("\nYou can choose another algorithm/dataset, open the UI, or Quit.")
 
 if __name__ == "__main__":
     main()
